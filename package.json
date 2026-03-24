@@ -1,0 +1,31 @@
+{
+  "name": "tiktok-quiz-automation",
+  "version": "1.0.0",
+  "description": "TikTok 雑学クイズ動画の自動生成・投稿システム",
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "render": "node scripts/render.mjs",
+    "generate-quiz": "node --loader ts-node/esm scripts/generate-quiz.ts",
+    "post": "node scripts/post-to-tiktok.mjs",
+    "pipeline": "node scripts/pipeline.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.4.0",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

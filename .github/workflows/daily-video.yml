@@ -1,0 +1,117 @@
+name: 📱 TikTok Daily Quiz Video
+
+on:
+  # 毎日 日本時間 20:00 (UTC 11:00) に自動実行
+  schedule:
+    - cron: "0 11 * * *"
+
+  # 手動実行も可能
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "DRY RUN (動画生成のみ、投稿しない)"
+        required: false
+        type: boolean
+        default: false
+      category_override:
+        description: "カテゴリを上書き (空白=自動ローテーション)"
+        required: false
+        type: string
+
+# 同時実行を防ぐ
+concurrency:
+  group: tiktok-pipeline
+  cancel-in-progress: false
+
+jobs:
+  generate-and-post:
+    name: 🎬 動画生成 & 投稿
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ===== セットアップ =====
+      - name: ⬇️ リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: 🟢 Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # Chrome（Remotionレンダリングに必要）
+      - name: 🌐 Chrome インストール
+        run: |
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          echo "PUPPETEER_EXECUTABLE_PATH=$(which google-chrome-stable)" >> $GITHUB_ENV
+
+      # 日本語フォントのインストール
+      - name: 🈳 日本語フォント インストール
+        run: |
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra
+          fc-cache -f -v
+
+      - name: 📦 依存関係インストール
+        run: npm ci
+
+      # ===== STEP 1: クイズ生成 =====
+      - name: 🧠 クイズ生成 (Claude API)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CATEGORY_OVERRIDE: ${{ inputs.category_override }}
+        run: node scripts/generate-quiz.mjs
+
+      - name: 📋 生成されたクイズを確認
+        run: cat public/quiz-data.json
+
+      # ===== STEP 2: 動画レンダリング =====
+      - name: 🎞️ Remotionで動画レンダリング
+        run: node scripts/render.mjs
+
+      - name: 📊 動画ファイル情報
+        run: |
+          ls -lh output/*.mp4
+          echo "video_date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        id: video_info
+
+      # ===== 動画をアーティファクトとして保存 =====
+      - name: 💾 動画をアーティファクトとして保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiz-video-${{ steps.video_info.outputs.video_date }}
+          path: output/*.mp4
+          retention-days: 7
+
+      # ===== STEP 3: TikTok投稿 =====
+      - name: 📤 TikTokへ投稿
+        if: ${{ inputs.dry_run != true }}
+        env:
+          TIKTOK_ACCESS_TOKEN: ${{ secrets.TIKTOK_ACCESS_TOKEN }}
+          TIKTOK_OPEN_ID: ${{ secrets.TIKTOK_OPEN_ID }}
+        run: node scripts/post-to-tiktok.mjs
+
+      # DRY RUNの場合
+      - name: ⏭️ DRY RUNモード (投稿スキップ)
+        if: ${{ inputs.dry_run == true }}
+        run: echo "DRY RUNモードのため、TikTok投稿をスキップしました"
+
+      # ===== 完了通知 =====
+      - name: ✅ 完了サマリー
+        if: always()
+        run: |
+          echo "## 📱 TikTok Quiz Video Pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 項目 | 詳細 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 実行日時 | $(date +'%Y-%m-%d %H:%M JST') |" >> $GITHUB_STEP_SUMMARY
+          if [ -f public/quiz-data.json ]; then
+            QUESTION=$(cat public/quiz-data.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['question'])")
+            CATEGORY=$(cat public/quiz-data.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['category'])")
+            echo "| カテゴリ | $CATEGORY |" >> $GITHUB_STEP_SUMMARY
+            echo "| 問題 | $QUESTION |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "| DRY RUN | ${{ inputs.dry_run || 'false' }} |" >> $GITHUB_STEP_SUMMARY
