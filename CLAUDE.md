@@ -1,122 +1,122 @@
-# CLAUDE.md — TikTok Quiz Automation
+# CLAUDE.md — TikTok クイズ自動化
 
-This file provides guidance for AI assistants working in this repository.
+このファイルは、このリポジトリで作業するAIアシスタント向けのガイドです。
 
-## Project Overview
+## プロジェクト概要
 
-An automated system that generates, renders, and posts daily Japanese trivia quiz videos to TikTok.
+日本語の雑学クイズ動画を毎日自動生成・レンダリング・TikTokに投稿するシステムです。
 
-**Pipeline**: GitHub Actions (daily 20:00 JST) → Claude API (quiz JSON) → Remotion (MP4 render) → TikTok API (publish)
+**パイプライン**: GitHub Actions (毎日20:00 JST) → Claude API (クイズJSON生成) → Remotion (MP4レンダリング) → TikTok API (投稿)
 
-**Primary language**: TypeScript/JavaScript (ESM)
-**Node.js requirement**: >= 18.0.0
-**Package manager**: npm
+**主要言語**: TypeScript/JavaScript (ESM)
+**Node.js要件**: >= 18.0.0
+**パッケージマネージャー**: npm
 
 ---
 
-## Repository Structure
+## リポジトリ構成
 
 ```
 tiktok-quiz-automation/
-├── .github/workflows/daily-video.yml  # Scheduled CI/CD automation
+├── .github/workflows/daily-video.yml  # スケジュール実行CI/CD
 ├── scripts/
-│   ├── generate-quiz.mjs              # Claude API quiz generation
-│   ├── render.mjs                     # Remotion video rendering
-│   ├── post-to-tiktok.mjs             # TikTok API posting
-│   └── pipeline.mjs                   # Orchestration (runs all 3 in order)
+│   ├── generate-quiz.mjs              # Claude APIでクイズ生成
+│   ├── render.mjs                     # Remotionで動画レンダリング
+│   ├── post-to-tiktok.mjs             # TikTok APIで投稿
+│   └── pipeline.mjs                   # 上記3つを順番に実行するオーケストレーター
 ├── src/
-│   ├── QuizVideo.tsx                  # Main Remotion video component
-│   ├── Root.tsx                       # Remotion composition entry point
-│   └── index.ts                       # Remotion registration
-├── public/quiz-data.json              # Generated quiz data (auto-created, committed)
-├── output/                            # Rendered MP4 files (.gitignore'd)
-├── .env.example                       # Required environment variables template
+│   ├── QuizVideo.tsx                  # メインのRemotion動画コンポーネント
+│   ├── Root.tsx                       # Remotionコンポジションのエントリポイント
+│   └── index.ts                       # Remotion登録
+├── public/quiz-data.json              # 生成されたクイズデータ（自動生成・コミット対象）
+├── output/                            # レンダリング済みMP4（.gitignore対象）
+├── .env.example                       # 必要な環境変数のテンプレート
 ├── tsconfig.json
 └── package.json
 ```
 
 ---
 
-## Technology Stack
+## 技術スタック
 
-| Layer | Technology |
-|-------|-----------|
-| Video generation | [Remotion](https://www.remotion.dev/) 4.x (React-based) |
-| AI content | Anthropic Claude API (`claude-opus-4-5`) |
-| TikTok publishing | TikTok Content Posting API v2 |
-| HTTP client | axios |
-| Scheduling | GitHub Actions (cron) |
-| Language | TypeScript 5.3, ESM modules (`.mjs`) |
+| レイヤー | 技術 |
+|---------|------|
+| 動画生成 | [Remotion](https://www.remotion.dev/) 4.x（Reactベース）|
+| AIコンテンツ | Anthropic Claude API（`claude-opus-4-5`）|
+| TikTok投稿 | TikTok Content Posting API v2 |
+| HTTPクライアント | axios |
+| スケジューリング | GitHub Actions（cron）|
+| 言語 | TypeScript 5.3、ESMモジュール（`.mjs`）|
 
 ---
 
-## Development Commands
+## 開発コマンド
 
 ```bash
-# Install dependencies
+# 依存関係のインストール
 npm install
 
-# Preview video in browser (Remotion Studio)
+# ブラウザでプレビュー（Remotion Studio）
 npm run dev
 
-# Run full pipeline locally (no TikTok post)
+# フルパイプラインをローカル実行（TikTok投稿なし）
 DRY_RUN=true node scripts/pipeline.mjs
 
-# Run individual steps
-node scripts/generate-quiz.mjs    # generates public/quiz-data.json
-node scripts/render.mjs           # renders output/quiz-YYYY-MM-DD.mp4
-node scripts/post-to-tiktok.mjs   # posts latest MP4 in output/
+# 各ステップを個別実行
+node scripts/generate-quiz.mjs    # public/quiz-data.json を生成
+node scripts/render.mjs           # output/quiz-YYYY-MM-DD.mp4 をレンダリング
+node scripts/post-to-tiktok.mjs   # output/ 内の最新MP4を投稿
 
-# Render video only
+# 動画レンダリングのみ
 npm run render
 
-# Bundle for production
+# プロダクション向けバンドル
 npm run build
 ```
 
 ---
 
-## Environment Variables
+## 環境変数
 
-Copy `.env.example` to `.env` for local development. In CI, these are GitHub Secrets.
+ローカル開発では `.env.example` を `.env` にコピーして使用します。CI環境ではGitHub Secretsを使用します。
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | Claude API key (`sk-ant-...`) |
-| `TIKTOK_ACCESS_TOKEN` | Yes | TikTok Content Posting API token |
-| `TIKTOK_OPEN_ID` | Yes | TikTok user Open ID |
-| `DRY_RUN` | No | Set `true` to skip TikTok posting |
-| `CATEGORY_OVERRIDE` | No | Force a specific quiz category |
+| 変数名 | 必須 | 説明 |
+|--------|------|------|
+| `ANTHROPIC_API_KEY` | Yes | Claude APIキー（`sk-ant-...`）|
+| `TIKTOK_ACCESS_TOKEN` | Yes | TikTok Content Posting APIトークン |
+| `TIKTOK_OPEN_ID` | Yes | TikTokユーザーのOpen ID |
+| `DRY_RUN` | No | `true` に設定するとTikTok投稿をスキップ |
+| `CATEGORY_OVERRIDE` | No | 特定のカテゴリを強制指定 |
 
-**Important**: TikTok tokens expire (24h–30d). A token refresh mechanism may be needed for long-running deployments.
+**注意**: TikTokトークンは有効期限があります（24時間〜30日）。長期運用にはトークン更新の仕組みが必要です。
 
 ---
 
-## Key Conventions
+## 主要な規約
 
-### Scripts (.mjs files)
-- All scripts use **ESM syntax** (`import`/`export`, not `require`)
-- Scripts are standalone — no TypeScript compilation needed
-- They read/write to `public/quiz-data.json` and `output/` directory
+### スクリプト（.mjsファイル）
+- すべてのスクリプトは **ESM構文** を使用（`import`/`export`、`require`は不使用）
+- スクリプトは独立して動作 — TypeScriptのコンパイル不要
+- `public/quiz-data.json` と `output/` ディレクトリを読み書きする
 
-### Video Component (`src/QuizVideo.tsx`)
-- Props are validated with **Zod schema**
-- Timeline is **frame-based** at 30 FPS, total 450 frames (15 seconds):
+### 動画コンポーネント（`src/QuizVideo.tsx`）
+- Propsは **Zodスキーマ** でバリデーション
+- タイムラインは **フレームベース**（30 FPS、合計450フレーム = 15秒）:
 
-| Phase | Frames | Duration |
-|-------|--------|----------|
-| Intro | 0–40 | 1.3s |
-| Question display | 40–100 | 2s |
-| Choices appear | 100–160 | 2s |
-| Countdown timer | 160–310 | 5s |
-| Answer reveal | 310–370 | 2s |
-| Explanation | 370–450 | 2.67s |
+| フェーズ | フレーム | 時間 |
+|---------|---------|------|
+| イントロ | 0〜40 | 1.3秒 |
+| 問題表示 | 40〜100 | 2秒 |
+| 選択肢表示 | 100〜160 | 2秒 |
+| カウントダウン | 160〜310 | 5秒 |
+| 答え表示 | 310〜370 | 2秒 |
+| 解説 | 370〜450 | 2.67秒 |
 
-- Output resolution: **1080×1920** (TikTok 9:16 vertical)
-- Render settings: h264, CRF 18, 4M video bitrate, 320k audio
+- 出力解像度: **1080×1920**（TikTok 9:16縦型）
+- レンダリング設定: h264、CRF 18、ビットレート4M（映像）/ 320k（音声）
 
-### Quiz Data Schema
-`public/quiz-data.json` contains:
+### クイズデータのスキーマ
+`public/quiz-data.json` の構造:
 ```json
 {
   "question": "...",
@@ -130,61 +130,61 @@ Copy `.env.example` to `.env` for local development. In CI, these are GitHub Sec
 }
 ```
 
-### Category & Difficulty Rotation
-Rotates daily based on `Date.now()` modulo array length:
-- **8 categories**: 地理, 科学, 歴史, 動物, 食文化, スポーツ, 日本文化, 雑学
-- **3 difficulties**: かんたん (Easy), ふつう (Normal), むずかしい (Hard)
-- Each category has a paired `bgColor` and `accentColor`
+### カテゴリ・難易度のローテーション
+`Date.now()` を配列の長さで割った余りで毎日ローテーション:
+- **カテゴリ（8種）**: 地理、科学、歴史、動物、食文化、スポーツ、日本文化、雑学
+- **難易度（3段階）**: かんたん、ふつう、むずかしい
+- 各カテゴリには `bgColor` と `accentColor` が対応付けられている
 
-### TikTok Posting
-- Privacy defaults to `SELF_ONLY` — change to `PUBLIC_TO_EVERYONE` for live publishing
-- Hashtag strategy: base tags + engagement tags + category-specific tags
-- Auto-detects newest `.mp4` in `output/` directory
-
----
-
-## GitHub Actions Workflow
-
-File: `.github/workflows/daily-video.yml`
-
-- **Schedule**: Daily at 11:00 UTC (20:00 JST)
-- **Manual trigger**: `workflow_dispatch` with optional `dry_run` input
-- **Concurrency**: Prevents overlapping runs
-- **Timeout**: 30 minutes
-- **Artifacts**: Video uploaded with 7-day retention
-- **System requirements installed in CI**: Chrome (for Remotion), Japanese fonts (Noto Sans CJK)
+### TikTok投稿
+- プライバシーはデフォルト `SELF_ONLY` — 本番公開時は `PUBLIC_TO_EVERYONE` に変更
+- ハッシュタグ戦略: 基本タグ + エンゲージメントタグ + カテゴリ別タグ
+- `output/` ディレクトリ内の最新 `.mp4` を自動検出
 
 ---
 
-## Common Tasks for AI Assistants
+## GitHub Actionsワークフロー
 
-### Modifying the video layout
-Edit `src/QuizVideo.tsx`. Use frame numbers and the timeline table above to target specific phases. The `CountdownRing` and `ChoiceButton` are internal sub-components in the same file.
+ファイル: `.github/workflows/daily-video.yml`
 
-### Changing quiz generation behavior
-Edit `scripts/generate-quiz.mjs`. The Claude model, prompt template, categories, difficulties, and color schemes are all defined there.
+- **スケジュール**: 毎日11:00 UTC（20:00 JST）
+- **手動実行**: `workflow_dispatch`（オプションで `dry_run` 入力可）
+- **同時実行制御**: 並行実行を防ぐ
+- **タイムアウト**: 30分
+- **アーティファクト**: 動画を7日間保持してアップロード
+- **CI環境のシステム要件**: Chrome（Remotion用）、日本語フォント（Noto Sans CJK）
 
-### Changing video render settings
-Edit `scripts/render.mjs`. Key settings: `codec`, `crf`, `videoBitrate`, `audioBitrate`, output path.
+---
 
-### Adjusting TikTok post behavior
-Edit `scripts/post-to-tiktok.mjs`. Privacy level, hashtag arrays, and API version are defined there.
+## AIアシスタントがよく行うタスク
 
-### Adding a new category
-1. Add entry to `CATEGORIES` array in `scripts/generate-quiz.mjs` with `name`, `emoji`, `bgColor`, `accentColor`
-2. Add corresponding hashtags in `scripts/post-to-tiktok.mjs`
+### 動画レイアウトの変更
+`src/QuizVideo.tsx` を編集します。上記のタイムライン表のフレーム番号を参考に対象フェーズを特定してください。`CountdownRing` と `ChoiceButton` は同ファイル内のサブコンポーネントです。
 
-### Testing locally without posting
+### クイズ生成の動作変更
+`scripts/generate-quiz.mjs` を編集します。Claudeのモデル、プロンプトテンプレート、カテゴリ、難易度、カラースキームがすべてここで定義されています。
+
+### 動画レンダリング設定の変更
+`scripts/render.mjs` を編集します。主要設定: `codec`、`crf`、`videoBitrate`、`audioBitrate`、出力パス。
+
+### TikTok投稿動作の調整
+`scripts/post-to-tiktok.mjs` を編集します。プライバシーレベル、ハッシュタグ配列、APIバージョンがここで定義されています。
+
+### 新しいカテゴリの追加
+1. `scripts/generate-quiz.mjs` の `CATEGORIES` 配列に `name`、`emoji`、`bgColor`、`accentColor` を持つエントリを追加
+2. `scripts/post-to-tiktok.mjs` に対応するハッシュタグを追加
+
+### TikTok投稿なしでローカルテスト
 ```bash
 DRY_RUN=true node scripts/pipeline.mjs
 ```
 
 ---
 
-## Important Notes
+## 重要事項
 
-- `output/` is `.gitignore`'d — rendered videos are not committed
-- `public/quiz-data.json` is committed and read by the Remotion bundler at render time
-- `tiktokcZQ3pMTS7bbHDRoDpMXkig66qVtr3CK8.txt` is a TikTok domain verification file — do not delete
-- The project targets Japanese-speaking TikTok users; all quiz content and UI text is in Japanese
-- Chrome must be installed in any environment running `render.mjs`
+- `output/` は `.gitignore` 対象 — レンダリング済み動画はコミットされない
+- `public/quiz-data.json` はコミット対象で、レンダリング時にRemotionバンドラーが読み込む
+- `tiktokcZQ3pMTS7bbHDRoDpMXkig66qVtr3CK8.txt` はTikTokのドメイン認証ファイル — 削除禁止
+- このプロジェクトは日本語圏のTikTokユーザーを対象としており、クイズ内容とUIテキストはすべて日本語
+- `render.mjs` を実行する環境にはChromeのインストールが必要
