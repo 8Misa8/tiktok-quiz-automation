@@ -473,6 +473,29 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
           👉 フォローで毎日クイズ！
         </div>
       </div>
+
+      {/* ===== 音声 ===== */}
+      {/* BGM: 動画全体を通して流れる（音量控えめ） */}
+      <Audio
+        src={staticFile("bgm.mp3")}
+        volume={0.28}
+        startFrom={0}
+      />
+
+      {/* イントロジングル: 最初の一瞬に鳴らす */}
+      <Sequence from={TIMELINE.intro.start} durationInFrames={30}>
+        <Audio src={staticFile("intro-jingle.mp3")} volume={0.7} />
+      </Sequence>
+
+      {/* カウントダウンビープ: カウントダウン区間で再生 */}
+      <Sequence from={TIMELINE.countdown.start} durationInFrames={TIMELINE.countdown.duration}>
+        <Audio src={staticFile("countdown-tick.mp3")} volume={0.65} />
+      </Sequence>
+
+      {/* 正解発表ジングル: 答え発表のタイミング */}
+      <Sequence from={TIMELINE.reveal.start} durationInFrames={40}>
+        <Audio src={staticFile("reveal.mp3")} volume={0.9} />
+      </Sequence>
     </AbsoluteFill>
   );
 };

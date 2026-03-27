@@ -8,3 +8,4 @@ output/
 # Remotionキャッシュ
 .cache/
 bundle/
+CLAUDE.md
