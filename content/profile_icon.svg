@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <!-- 背景グラデーション -->
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#2d1b69"/>
+      <stop offset="100%" stop-color="#0f0a1e"/>
+    </radialGradient>
+    <!-- 光彩グラデーション -->
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 脳のグラデーション -->
+    <linearGradient id="brainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <!-- クリップサークル -->
+    <clipPath id="circle">
+      <circle cx="200" cy="200" r="200"/>
+    </clipPath>
+  </defs>
+
+  <!-- 背景円 -->
+  <circle cx="200" cy="200" r="200" fill="url(#bgGrad)"/>
+
+  <!-- 光彩エフェクト -->
+  <circle cx="200" cy="180" r="160" fill="url(#glowGrad)"/>
+
+  <!-- 装飾ドット（背景） -->
+  <circle cx="60" cy="80" r="3" fill="#a855f7" opacity="0.4"/>
+  <circle cx="340" cy="100" r="2" fill="#f472b6" opacity="0.4"/>
+  <circle cx="80" cy="320" r="2.5" fill="#a855f7" opacity="0.3"/>
+  <circle cx="330" cy="310" r="3" fill="#c084fc" opacity="0.4"/>
+  <circle cx="120" cy="50" r="2" fill="#f472b6" opacity="0.3"/>
+  <circle cx="290" cy="340" r="2" fill="#a855f7" opacity="0.3"/>
+
+  <!-- 脳のシルエット（シンプル化したアイコン） -->
+  <g transform="translate(200, 185)" clip-path="url(#circle)">
+    <!-- 左脳 -->
+    <path d="
+      M-10,-70
+      C-10,-80 -25,-85 -40,-80
+      C-60,-75 -75,-60 -78,-42
+      C-82,-25 -75,-10 -65,-2
+      C-72,8 -72,25 -62,35
+      C-55,45 -42,48 -30,44
+      C-25,55 -15,62 -5,62
+      L-5,-70 Z
+    " fill="url(#brainGrad)" opacity="0.95"/>
+
+    <!-- 右脳 -->
+    <path d="
+      M10,-70
+      C10,-80 25,-85 40,-80
+      C60,-75 75,-60 78,-42
+      C82,-25 75,-10 65,-2
+      C72,8 72,25 62,35
+      C55,45 42,48 30,44
+      C25,55 15,62 5,62
+      L5,-70 Z
+    " fill="url(#brainGrad)" opacity="0.95"/>
+
+    <!-- 中央の溝 -->
+    <rect x="-5" y="-70" width="10" height="132" fill="#0f0a1e" opacity="0.6" rx="4"/>
+
+    <!-- 脳の溝ライン（左） -->
+    <path d="M-20,-40 Q-50,-20 -45,10" stroke="#0f0a1e" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <path d="M-25,5 Q-65,20 -55,45" stroke="#0f0a1e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <path d="M-15,-60 Q-45,-55 -50,-35" stroke="#0f0a1e" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+
+    <!-- 脳の溝ライン（右） -->
+    <path d="M20,-40 Q50,-20 45,10" stroke="#0f0a1e" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <path d="M25,5 Q65,20 55,45" stroke="#0f0a1e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <path d="M15,-60 Q45,-55 50,-35" stroke="#0f0a1e" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+
+    <!-- 光彩ハイライト -->
+    <ellipse cx="-30" cy="-50" rx="18" ry="10" fill="white" opacity="0.12" transform="rotate(-20,-30,-50)"/>
+    <ellipse cx="30" cy="-50" rx="18" ry="10" fill="white" opacity="0.12" transform="rotate(20,30,-50)"/>
+  </g>
+
+  <!-- クエスチョンマーク -->
+  <text x="200" y="298" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="#fbbf24" opacity="0.95">？</text>
+
+  <!-- 下部テキスト -->
+  <text x="200" y="348" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#e2d4f0" letter-spacing="3" opacity="0.9">心理クイズ</text>
+
+  <!-- 外枠リング -->
+  <circle cx="200" cy="200" r="192" fill="none" stroke="#a855f7" stroke-width="3" opacity="0.5"/>
+  <circle cx="200" cy="200" r="196" fill="none" stroke="#7c3aed" stroke-width="1" opacity="0.3"/>
+</svg>
