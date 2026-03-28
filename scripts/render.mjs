@@ -55,10 +55,6 @@ async function render() {
     codec: "h264",
     outputLocation: outputPath,
     inputProps: quizData,
-    // TikTok推奨設定
-    crf: 18,        // 高品質
-    videoBitrate: "4M",
-    audioBitrate: "320k",
     fps: 30,
     onProgress: ({ progress }) => {
       process.stdout.write(`\r   進捗: ${Math.round(progress * 100)}%`);
