@@ -7,19 +7,20 @@ Claude API + Remotion + GitHub Actions で、毎日自動的にTikTok用クイ�
 ```
 毎日 20:00 (JST) GitHub Actions が自動起動
     ↓
-Claude API で日本語雑学クイズを生成
+Claude API で日本語雑学クイズを生成（hook・bonusFact含む）
     ↓
-Remotion で9:16縦型動画をレンダリング（15秒）
+Remotion で9:16縦型動画をレンダリング（64秒 / Creator Rewards Program対応）
     ↓
 TikTok API で自動投稿
 ```
 
 ### コンテンツ例
-- 「日本で一番高い山は？」（地理クイズ）
-- 「キリンが寝る時間は1日何時間？」（動物クイズ）
-- 「江戸時代の人口は？」（歴史クイズ）
+- 「99%の人が知らない！コンビニのあの食べ物の本当の名前は？」（日常雑学）
+- 「脳が騙される錯覚クイズ！正解できたら天才」（心理・脳科学）
+- 「江戸時代にあった意外なもの、何個知ってる？」（歴史クイズ）
 
-8カテゴリを日付で自動ローテーション：🌏地理 / 🔬科学 / 📜歴史 / 🐾動物 / 🍜食文化 / 🏆スポーツ / 🎌日本文化 / 💡雑学
+10カテゴリを日付で自動ローテーション：
+🧠心理 / 💡雑学 / 📜歴史 / 🔬科学 / 🐾動物 / 🍜食文化 / 🌏地理 / 🎌日本文化 / 🏥健康・体 / 💰お金・経済
 
 ---
 
@@ -66,9 +67,11 @@ GitHubリポジトリの Settings → Secrets and variables → Actions に追�
 
 | Secret名 | 内容 |
 |---------|------|
-| `ANTHROPIC_API_KEY` | Claude API キー |
+| `ANTHROPIC_API_KEY` | Claude API キー（`sk-ant-...` の形式で、引用符なし） |
 | `TIKTOK_ACCESS_TOKEN` | TikTok アクセストークン |
 | `TIKTOK_OPEN_ID` | TikTok ユーザーの Open ID |
+
+> ⚠️ **重要**: `ANTHROPIC_API_KEY` はキーの値のみを貼り付けてください。引用符（`"` や `'`）や改行を含めると認証エラーになります。
 
 ---
 
@@ -110,35 +113,64 @@ node scripts/pipeline.mjs
 tiktok-quiz-automation/
 ├── src/
 │   ├── Root.tsx           # Remotionのエントリーポイント
-│   ├── QuizVideo.tsx      # メイン動画コンポーネント（アニメーション込み）
-│   └── index.ts
+│   ├── QuizVideo.tsx      # メイン動画コンポーネント（9フェーズ・64秒）
+│   ├── index.ts
+│   └── components/        # サブコンポーネント
 ├── scripts/
 │   ├── generate-quiz.mjs  # Claude APIでクイズ生成
 │   ├── render.mjs         # Remotionで動画レンダリング
 │   ├── post-to-tiktok.mjs # TikTok APIで投稿
 │   └── pipeline.mjs       # 全ステップを一括実行
 ├── .github/workflows/
-│   └── daily-video.yml    # GitHub Actions（毎日20:00 JST）
+│   └── daily-video.yml    # GitHub Actions（毎日20:00 JST、タイムアウト60分）
 ├── public/
-│   └── quiz-data.json     # 生成されたクイズデータ（自動生成）
+│   ├── quiz-data.json     # 生成されたクイズデータ（自動生成）
+│   ├── bgm.mp3            # BGM（Gitに含める）
+│   ├── countdown-tick.mp3 # カウントダウン音
+│   ├── intro-jingle.mp3   # イントロ音
+│   └── reveal.mp3         # 答え発表音
 └── output/                # レンダリングされた動画（.gitignore対象）
 ```
 
 ---
 
-## 🎨 動画カスタマイズ
+## 🎨 動画タイムライン（64秒 / 1920フレーム @ 30fps）
 
 `src/QuizVideo.tsx` の `TIMELINE` を変更すると動画の尺・タイミングを調整できます：
 
 ```typescript
 const TIMELINE = {
-  intro:       { start: 0,   duration: 40  },  // イントロ
-  question:    { start: 40,  duration: 60  },  // 問題表示
-  choices:     { start: 100, duration: 60  },  // 選択肢登場
-  countdown:   { start: 160, duration: 150 },  // カウントダウン（5秒）
-  reveal:      { start: 310, duration: 60  },  // 答え発表
-  explanation: { start: 370, duration: 80  },  // 解説
+  hook:        { start: 0,    duration: 90  },  // 0〜3秒:    フック「99%の人が間違える！」
+  question:    { start: 90,   duration: 120 },  // 3〜7秒:    問題文フェードイン
+  choices:     { start: 210,  duration: 120 },  // 7〜11秒:   選択肢登場
+  engage:      { start: 330,  duration: 90  },  // 11〜14秒:  「コメントで予想して！」
+  countdown:   { start: 420,  duration: 300 },  // 14〜24秒:  10秒カウントダウン
+  reveal:      { start: 720,  duration: 120 },  // 24〜28秒:  答え発表
+  explanation: { start: 840,  duration: 330 },  // 28〜39秒:  解説
+  bonusFact:   { start: 1170, duration: 390 },  // 39〜52秒:  ボーナス豆知識
+  cta:         { start: 1560, duration: 360 },  // 52〜64秒:  フォローCTA＋保存促進
 };
+```
+
+**なぜ64秒か**: Creator Rewards Program（収益化）は1分以上の動画のみ対象。
+
+---
+
+## 🤖 クイズデータのフォーマット（`public/quiz-data.json`）
+
+```json
+{
+  "question": "問題文",
+  "choices": ["A選択肢", "B選択肢", "C選択肢", "D選択肢"],
+  "correctIndex": 0,
+  "explanation": "正解の解説文",
+  "bonusFact": "追加の豆知識（ボーナス豆知識フェーズで表示）",
+  "hook": "冒頭フックテキスト（例: 99%の人が間違える！）",
+  "category": "🧠 心理",
+  "difficulty": "ふつう",
+  "bgColor": "#0f0a1e",
+  "accentColor": "#a855f7"
+}
 ```
 
 ---
@@ -154,7 +186,12 @@ const TIMELINE = {
 **収益化条件（Creator Rewards Program）:**
 - フォロワー 10,000人以上
 - 過去30日間で動画再生 100,000回以上
-- 動画の長さ 1分以上（このシステムは15秒なので、複数クイズをつなげて1分以上の動画も可能）
+- 動画の長さ **1分以上**（このシステムは64秒で対応済み ✅）
+
+### 収益化ロードマップ
+- **Phase 1（0〜3ヶ月）**: フォロワー1,000人 → 毎日投稿でアカウントの認知確立
+- **Phase 2（3〜6ヶ月）**: フォロワー10,000人 + 月10万再生 → Creator Rewards Program申請
+- **Phase 3（6ヶ月〜）**: 月収¥6,000〜¥12,000（10万再生）〜 ¥60,000〜¥120,000（100万再生）
 
 ---
 
@@ -163,3 +200,5 @@ const TIMELINE = {
 - TikTok APIのアクセストークンは有効期限があります（通常24時間〜30日）。定期的なリフレッシュが必要です。
 - `PRIVACY_LEVEL` は最初 `SELF_ONLY`（非公開）に設定しています。動作確認後は `post-to-tiktok.mjs` で `PUBLIC_TO_EVERYONE` に変更してください。
 - GitHub Actionsの無料枠：月2,000分まで。このワークフローは1回あたり約10〜15分なので、毎日実行しても月300〜450分程度で余裕があります。
+- GitHub Actions の `dry_run` は **デフォルトで `true`**（テスト用）です。本番投稿時は手動実行画面で `false` に変更してください。
+- 音声ファイル（`public/*.mp3`）はGitHubに含めてください。`.gitignore` では `*.mp3` を除外していません。
