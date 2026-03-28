@@ -144,6 +144,91 @@ const RevealFlash: React.FC<{ accentColor: string }> = ({ accentColor }) => {
   );
 };
 
+// ===== 紙吹雪パーティクル（正解発表時） =====
+const Confetti: React.FC = () => {
+  const frame = useCurrentFrame();
+  const COLORS = ["#fbbf24", "#2ed573", "#74b9ff", "#fd79a8", "#a29bfe", "#ff7675"];
+  const particles = Array.from({ length: 24 }, (_, i) => {
+    const seed = (i * 137.5) % 360;
+    const x = (i / 24) * 100;
+    const delay = (i % 6) * 3;
+    const progress = Math.max(0, frame - delay) / 60;
+    const y = interpolate(progress, [0, 1], [-10, 120], { extrapolateRight: "clamp" });
+    const rotation = seed + frame * (i % 2 === 0 ? 3 : -3);
+    const opacity = interpolate(progress, [0, 0.1, 0.8, 1], [0, 1, 1, 0], { extrapolateRight: "clamp" });
+    const size = 8 + (i % 3) * 6;
+    return { x, y, rotation, opacity, color: COLORS[i % COLORS.length], size };
+  });
+
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {particles.map((p, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          left: `${p.x}%`,
+          top: `${p.y}%`,
+          width: p.size,
+          height: p.size,
+          background: p.color,
+          opacity: p.opacity,
+          transform: `rotate(${p.rotation}deg)`,
+          borderRadius: i % 3 === 0 ? "50%" : 2,
+        }} />
+      ))}
+    </div>
+  );
+};
+
+// ===== プログレスバー（動画全体の進行状況） =====
+const ProgressBar: React.FC<{ accentColor: string }> = ({ accentColor }) => {
+  const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
+  const progress = frame / durationInFrames;
+  return (
+    <div style={{
+      position: "absolute", top: 0, left: 0, right: 0, height: 6, zIndex: 100,
+      background: "rgba(255,255,255,0.15)",
+    }}>
+      <div style={{
+        height: "100%",
+        width: `${progress * 100}%`,
+        background: `linear-gradient(90deg, ${accentColor}, #fbbf24)`,
+        borderRadius: "0 4px 4px 0",
+        boxShadow: `0 0 8px ${accentColor}`,
+        transition: "width 0.1s linear",
+      }} />
+    </div>
+  );
+};
+
+// ===== タイプライター効果 =====
+const TypewriterText: React.FC<{
+  text: string;
+  startFrame: number;
+  charsPerFrame?: number;
+  style?: React.CSSProperties;
+}> = ({ text, startFrame, charsPerFrame = 0.8, style }) => {
+  const frame = useCurrentFrame();
+  const elapsed = Math.max(0, frame - startFrame);
+  const charsToShow = Math.min(text.length, Math.floor(elapsed * charsPerFrame));
+  const displayText = text.slice(0, charsToShow);
+  const showCursor = charsToShow < text.length;
+  return (
+    <span style={style}>
+      {displayText}
+      {showCursor && (
+        <span style={{
+          opacity: Math.floor(elapsed / 8) % 2 === 0 ? 1 : 0,
+          borderRight: "3px solid #fff",
+          marginLeft: 2,
+        }}>
+          &#8203;
+        </span>
+      )}
+    </span>
+  );
+};
+
 // ===== メインコンポーネント =====
 export const QuizVideo: React.FC<QuizVideoProps> = ({
   question, choices, correctIndex, explanation,
@@ -214,6 +299,9 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
       fontFamily: "'Noto Sans JP', 'Hiragino Sans', sans-serif",
       overflow: "hidden",
     }}>
+      {/* プログレスバー（常時表示） */}
+      <ProgressBar accentColor={accentColor} />
+
       {/* 背景グラデーション */}
       <div style={{
         position: "absolute", inset: 0,
@@ -318,7 +406,11 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
               Q U E S T I O N
             </div>
             <div style={{ fontSize: 44, color: "#fff", fontWeight: "bold", lineHeight: 1.45 }}>
-              {question}
+              <TypewriterText
+                text={question}
+                startFrame={TIMELINE.question.start + 10}
+                charsPerFrame={0.9}
+              />
             </div>
           </div>
         </div>
@@ -396,19 +488,38 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
           <Sequence from={0} durationInFrames={20}>
             <RevealFlash accentColor={accentColor} />
           </Sequence>
+          {/* 紙吹雪 */}
+          <Sequence from={0} durationInFrames={TIMELINE.reveal.duration}>
+            <Confetti />
+          </Sequence>
           <div style={{
             position: "absolute", bottom: 100, left: 60, right: 60,
             opacity: revealOpacity,
             transform: `scale(${revealScale})`,
           }}>
+            {/* 正解ラベル（点滅） */}
+            <div style={{
+              textAlign: "center", marginBottom: 16,
+              opacity: Math.floor((frame - TIMELINE.reveal.start) / 6) % 2 === 0 ? 1 : 0.5,
+            }}>
+              <span style={{
+                fontSize: 40, fontWeight: "bold", color: "#fbbf24",
+                textShadow: "0 0 20px #fbbf24, 0 0 40px #fbbf24",
+                letterSpacing: 4,
+              }}>
+                🎉 正 解 発 表 🎉
+              </span>
+            </div>
             <div style={{
               background: `linear-gradient(135deg, #2ed573, #1abc9c)`,
               borderRadius: 24, padding: "28px 36px", textAlign: "center",
+              boxShadow: "0 0 40px rgba(46,213,115,0.6)",
             }}>
               <div style={{ fontSize: 30, color: "#fff", fontWeight: "bold" }}>
                 ✅ 正解は...
               </div>
-              <div style={{ fontSize: 52, color: "#fff", fontWeight: "bold", marginTop: 10 }}>
+              <div style={{ fontSize: 52, color: "#fff", fontWeight: "bold", marginTop: 10,
+                textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
                 {choices[correctIndex]}
               </div>
             </div>
