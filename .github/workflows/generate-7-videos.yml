@@ -1,0 +1,111 @@
+name: 🎬 週1回分・7本動画まとめ生成
+
+on:
+  # 手動実行のみ
+  workflow_dispatch:
+
+jobs:
+  generate-7-videos:
+    name: 🎞️ 7本動画レンダリング
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    strategy:
+      matrix:
+        include:
+          - day: 1
+            file: "day1_行動心理.json"
+            label: "行動心理"
+          - day: 2
+            file: "day2_恋愛心理.json"
+            label: "恋愛心理"
+          - day: 3
+            file: "day3_人間関係.json"
+            label: "人間関係"
+          - day: 4
+            file: "day4_性格診断.json"
+            label: "性格診断"
+          - day: 5
+            file: "day5_感情の謎.json"
+            label: "感情の謎"
+          - day: 6
+            file: "day6_思考の罠.json"
+            label: "思考の罠"
+          - day: 7
+            file: "day7_言葉の心理.json"
+            label: "言葉の心理"
+
+    steps:
+      # ===== セットアップ =====
+      - name: ⬇️ リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: 🟢 Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 🌐 Chrome インストール
+        run: |
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          echo "PUPPETEER_EXECUTABLE_PATH=$(which google-chrome-stable)" >> $GITHUB_ENV
+
+      - name: 🈳 日本語フォント インストール
+        run: |
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra
+          fc-cache -f -v
+
+      - name: 📦 依存関係インストール
+        run: npm ci
+
+      # ===== クイズデータをセット =====
+      - name: 📋 Day${{ matrix.day }} (${{ matrix.label }}) のデータをセット
+        run: |
+          cp content/${{ matrix.file }} public/quiz-data.json
+          echo "✅ クイズデータ:"
+          cat public/quiz-data.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'カテゴリ: {d[\"category\"]}'); print(f'フック: {d[\"hook\"]}'); print(f'問題: {d[\"question\"]}')"
+
+      # ===== 動画レンダリング =====
+      - name: 🎬 Day${{ matrix.day }} 動画レンダリング
+        run: |
+          node scripts/render.mjs
+          # ファイルをday番号付きにリネーム
+          DATE=$(date +'%Y-%m-%d')
+          mv output/quiz-${DATE}.mp4 output/day${{ matrix.day }}_${{ matrix.label }}.mp4
+          echo "📹 生成完了:"
+          ls -lh output/day${{ matrix.day }}_${{ matrix.label }}.mp4
+
+      # ===== アーティファクト保存 =====
+      - name: 💾 Day${{ matrix.day }} 動画を保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: day${{ matrix.day }}_${{ matrix.label }}
+          path: output/day${{ matrix.day }}_${{ matrix.label }}.mp4
+          retention-days: 14
+
+  # 全動画生成完了後にサマリー
+  summary:
+    name: ✅ 完了サマリー
+    runs-on: ubuntu-latest
+    needs: generate-7-videos
+    if: always()
+    steps:
+      - name: 📊 完了レポート
+        run: |
+          echo "## 🎬 7本動画まとめ生成 完了レポート" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| # | カテゴリ | ステータス |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Day1 | 🧠 行動心理 | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Day2 | 💕 恋愛心理 | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Day3 | 🤝 人間関係 | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Day4 | 🔮 性格診断 | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Day5 | 😤 感情の謎 | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Day6 | 🧩 思考の罠 | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Day7 | 💬 言葉の心理 | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Actionsタブの各ジョブから動画をダウンロードできます（14日間保存）。" >> $GITHUB_STEP_SUMMARY
