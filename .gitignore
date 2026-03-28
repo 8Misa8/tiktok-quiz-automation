@@ -3,7 +3,7 @@ dist/
 output/
 .env
 *.mp4
-*.mp3
+# *.mp3 は音声アセットとしてGitに含める（GitHub Actionsで必要）
 
 # Remotionキャッシュ
 .cache/

@@ -2,7 +2,6 @@ name: 📱 TikTok Daily Quiz Video
 
 on:
   # 毎日 日本時間 20:00 (UTC 11:00) に自動実行
-  # バズりやすい投稿時間帯: 20時（就寝前スクロール時間）
   schedule:
     - cron: "0 11 * * *"
 
@@ -28,7 +27,7 @@ jobs:
   generate-and-post:
     name: 🎬 動画生成 & 投稿
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       # ===== セットアップ =====
@@ -112,9 +111,7 @@ jobs:
           if [ -f public/quiz-data.json ]; then
             QUESTION=$(cat public/quiz-data.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['question'])")
             CATEGORY=$(cat public/quiz-data.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['category'])")
-            HOOK=$(cat public/quiz-data.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('hook',''))")
             echo "| カテゴリ | $CATEGORY |" >> $GITHUB_STEP_SUMMARY
-            echo "| フック | $HOOK |" >> $GITHUB_STEP_SUMMARY
             echo "| 問題 | $QUESTION |" >> $GITHUB_STEP_SUMMARY
           fi
           echo "| DRY RUN | ${{ inputs.dry_run || 'false' }} |" >> $GITHUB_STEP_SUMMARY
