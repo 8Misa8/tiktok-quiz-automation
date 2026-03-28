@@ -1,26 +1,40 @@
-# 📱 TikTok 雑学クイズ 自動投稿システム
+# 📱 TikTok 心理・人間関係クイズ 自動投稿システム
 
-Claude API + Remotion + GitHub Actions で、毎日自動的にTikTok用クイズ動画を生成・投稿するシステムです。
+Claude API + Remotion + GitHub Actions で、毎日自動的にTikTok用の**心理学・人間関係**クイズ動画を生成・投稿するシステムです。
 
 ## 🎯 概要
 
 ```
 毎日 20:00 (JST) GitHub Actions が自動起動
     ↓
-Claude API で日本語雑学クイズを生成（hook・bonusFact含む）
+Claude API で心理・人間関係クイズを生成（hook・bonusFact含む）
     ↓
 Remotion で9:16縦型動画をレンダリング（64秒 / Creator Rewards Program対応）
     ↓
 TikTok API で自動投稿
 ```
 
-### コンテンツ例
-- 「99%の人が知らない！コンビニのあの食べ物の本当の名前は？」（日常雑学）
-- 「脳が騙される錯覚クイズ！正解できたら天才」（心理・脳科学）
-- 「江戸時代にあった意外なもの、何個知ってる？」（歴史クイズ）
+### ニッチ戦略
+「心理・人間関係」に**完全特化**することで、TikTokアルゴリズムのレコメンドを最大化する戦略を採用。雑多な雑学アカウントはアルゴリズムに弱く、専門性の高いアカウントほどレコメンドされやすい。
 
-10カテゴリを日付で自動ローテーション：
-🧠心理 / 💡雑学 / 📜歴史 / 🔬科学 / 🐾動物 / 🍜食文化 / 🌏地理 / 🎌日本文化 / 🏥健康・体 / 💰お金・経済
+**ターゲット視聴者**: 15〜35歳の日本人。特に「恋愛・人間関係に悩む人」「自己理解を深めたい人」。
+
+### コンテンツ例
+- 「好きな人があなたに好意を持っているサインは？」（恋愛心理）
+- 「なぜ人は損をしてでも意地を張るのか？」（思考の罠・認知バイアス）
+- 「この返し方で相手の印象が180度変わる一言は？」（言葉の心理）
+
+### サブカテゴリ（7日ローテーション）
+
+| カテゴリ | テーマ |
+|---------|--------|
+| 🧠 行動心理 | 無意識の行動の心理学的理由 |
+| 💕 恋愛心理 | 好意・引き寄せの心理学 |
+| 🤝 人間関係 | コミュニケーション・職場心理 |
+| 🔮 性格診断 | 行動・癖から分かる性格傾向 |
+| 😤 感情の謎 | 喜怒哀楽・ストレスのメカニズム |
+| 🧩 思考の罠 | 認知バイアス・思考の錯誤 |
+| 💬 言葉の心理 | 言葉・話し方の心理的影響 |
 
 ---
 
@@ -114,10 +128,11 @@ tiktok-quiz-automation/
 ├── src/
 │   ├── Root.tsx           # Remotionのエントリーポイント
 │   ├── QuizVideo.tsx      # メイン動画コンポーネント（9フェーズ・64秒）
+│   │                      # 紙吹雪・プログレスバー・タイプライター効果実装済み
 │   ├── index.ts
 │   └── components/        # サブコンポーネント
 ├── scripts/
-│   ├── generate-quiz.mjs  # Claude APIでクイズ生成
+│   ├── generate-quiz.mjs  # Claude APIで心理クイズ生成
 │   ├── render.mjs         # Remotionで動画レンダリング
 │   ├── post-to-tiktok.mjs # TikTok APIで投稿
 │   └── pipeline.mjs       # 全ステップを一括実行
@@ -140,12 +155,12 @@ tiktok-quiz-automation/
 
 ```typescript
 const TIMELINE = {
-  hook:        { start: 0,    duration: 90  },  // 0〜3秒:    フック「99%の人が間違える！」
-  question:    { start: 90,   duration: 120 },  // 3〜7秒:    問題文フェードイン
+  hook:        { start: 0,    duration: 90  },  // 0〜3秒:    フック
+  question:    { start: 90,   duration: 120 },  // 3〜7秒:    問題文（タイプライター表示）
   choices:     { start: 210,  duration: 120 },  // 7〜11秒:   選択肢登場
   engage:      { start: 330,  duration: 90  },  // 11〜14秒:  「コメントで予想して！」
   countdown:   { start: 420,  duration: 300 },  // 14〜24秒:  10秒カウントダウン
-  reveal:      { start: 720,  duration: 120 },  // 24〜28秒:  答え発表
+  reveal:      { start: 720,  duration: 120 },  // 24〜28秒:  答え発表（紙吹雪）
   explanation: { start: 840,  duration: 330 },  // 28〜39秒:  解説
   bonusFact:   { start: 1170, duration: 390 },  // 39〜52秒:  ボーナス豆知識
   cta:         { start: 1560, duration: 360 },  // 52〜64秒:  フォローCTA＋保存促進
@@ -160,16 +175,16 @@ const TIMELINE = {
 
 ```json
 {
-  "question": "問題文",
+  "question": "問題文（30字以内）",
   "choices": ["A選択肢", "B選択肢", "C選択肢", "D選択肢"],
   "correctIndex": 0,
-  "explanation": "正解の解説文",
-  "bonusFact": "追加の豆知識（ボーナス豆知識フェーズで表示）",
-  "hook": "冒頭フックテキスト（例: 99%の人が間違える！）",
-  "category": "🧠 心理",
+  "explanation": "正解の解説文（60〜90字）",
+  "bonusFact": "実践的な活用法を含むボーナス豆知識（90〜130字）",
+  "hook": "冒頭フックテキスト（20字以内）",
+  "category": "💕 恋愛心理",
   "difficulty": "ふつう",
-  "bgColor": "#0f0a1e",
-  "accentColor": "#a855f7"
+  "bgColor": "#1a0a1a",
+  "accentColor": "#f472b6"
 }
 ```
 
@@ -192,6 +207,11 @@ const TIMELINE = {
 - **Phase 1（0〜3ヶ月）**: フォロワー1,000人 → 毎日投稿でアカウントの認知確立
 - **Phase 2（3〜6ヶ月）**: フォロワー10,000人 + 月10万再生 → Creator Rewards Program申請
 - **Phase 3（6ヶ月〜）**: 月収¥6,000〜¥12,000（10万再生）〜 ¥60,000〜¥120,000（100万再生）
+
+### 推奨ハッシュタグ
+```
+#心理学 #人間関係 #恋愛心理 #行動心理学 #メンタル #クイズ #豆知識
+```
 
 ---
 
