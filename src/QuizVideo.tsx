@@ -295,7 +295,7 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
 
   return (
     <AbsoluteFill style={{
-      background: `linear-gradient(135deg, ${bgColor} 0%, #16213e 50%, #0f3460 100%)`,
+      background: `linear-gradient(160deg, ${bgColor} 0%, #1a1a4e 45%, #0f2d5c 100%)`,
       fontFamily: "'Noto Sans JP', 'Hiragino Sans', sans-serif",
       overflow: "hidden",
     }}>
@@ -330,7 +330,7 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
               fontSize: 38, fontWeight: "bold", color: "#fff",
               letterSpacing: 2,
             }}>
-              🚨 あなたは答えられる？
+              ⚠️ あなたの本音、当ててみせる
             </div>
           </div>
 
@@ -421,7 +421,7 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
           {choices.map((choice, i) => (
             <ChoiceButton
               key={i}
-              label={["A", "B", "C", "D"][i]}
+              label={["①", "②", "③", "④"][i]}
               text={choice}
               isCorrect={i === correctIndex}
               revealed={isRevealed}
@@ -447,10 +447,10 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
             textAlign: "center",
           }}>
             <div style={{ fontSize: 32, color: "#fff", fontWeight: "bold" }}>
-              💬 A〜Dどれを選んだ？今すぐコメント👇
+              💬 ①〜④どれを選んだ？コメントして👇
             </div>
             <div style={{ fontSize: 24, color: "rgba(255,255,255,0.6)", marginTop: 8 }}>
-              正解できたか、答え合わせしよう！
+              正解した人、コメントで教えて！
             </div>
           </div>
         </div>
