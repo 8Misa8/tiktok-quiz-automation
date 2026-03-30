@@ -17,22 +17,19 @@ import FormData from "form-data";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = join(__dirname, "..");
 
-// ===== ハッシュタグ戦略 =====
+// ===== ハッシュタグ戦略（心理・人間関係ニッチ特化） =====
 const HASHTAG_POOLS = {
-  base: ["#雑学", "#クイズ", "#豆知識", "#trivia", "#quiz"],
-  engagement: ["#答えてみて", "#コメントで答えて", "#考えてみて"],
-  viral: ["#知らなかった", "#へえ", "#勉強になった", "#びっくり", "#保存して"],
+  base: ["#心理学", "#心理テスト", "#クイズ"],
+  engagement: ["#コメントで答えて", "#あなたはどれ", "#答えてみて"],
+  viral: ["#当たりすぎ", "#保存して", "#知らなかった", "#勉強になった"],
   category: {
-    "🧠 心理":       ["#心理学", "#心理テスト", "#脳科学"],
-    "💡 雑学":       ["#雑学", "#面白い話", "#豆知識"],
-    "📜 歴史":       ["#歴史", "#日本史", "#世界史"],
-    "🔬 科学":       ["#科学", "#理科", "#サイエンス"],
-    "🐾 動物":       ["#動物", "#生き物", "#どうぶつ"],
-    "🍜 食文化":     ["#食文化", "#グルメ", "#料理"],
-    "🌏 地理":       ["#地理", "#世界地図", "#国旗"],
-    "🎌 日本文化":   ["#日本文化", "#和文化", "#日本"],
-    "🏥 健康・体":   ["#健康", "#体の不思議", "#医療"],
-    "💰 お金・経済": ["#お金", "#経済", "#節約"],
+    "🧠 行動心理": ["#行動心理学", "#無意識", "#脳科学"],
+    "💕 恋愛心理": ["#恋愛心理", "#恋愛", "#好きな人", "#片思い"],
+    "🤝 人間関係": ["#人間関係", "#コミュニケーション", "#職場"],
+    "🔮 性格診断": ["#性格診断", "#性格テスト", "#自分磨き"],
+    "😤 感情の謎": ["#メンタル", "#感情", "#ストレス"],
+    "🧩 思考の罠": ["#認知バイアス", "#思考", "#脳トレ"],
+    "💬 言葉の心理": ["#話し方", "#コミュ力", "#言葉"],
   },
 };
 
@@ -47,7 +44,7 @@ function buildCaption(quizData) {
 
   // フックテキストをキャプション冒頭に使用してクリック率を上げる
   const hookLine = quizData.hook ? `${quizData.hook}\n` : "";
-  return `${hookLine}${quizData.question}\n💬 答えをコメントで！\n\n${tags}`;
+  return `${hookLine}${quizData.question}\n💬 ①〜④どれを選んだ？コメントして👇\n\n${tags}`;
 }
 
 async function getLatestVideoPath() {
@@ -73,11 +70,11 @@ async function initUpload(accessToken, videoSize) {
     {
       post_info: {
         title: "",  // キャプションはupload後に設定
-        privacy_level: "SELF_ONLY",  // 最初は非公開でテスト、慣れたらPUBLIC_TO_EVERYONEに変更
+        privacy_level: "PUBLIC_TO_EVERYONE",  // 公開設定（収益化にはパブリック必須）
         disable_duet: false,
         disable_comment: false,
         disable_stitch: false,
-        video_cover_timestamp_ms: 1000,
+        video_cover_timestamp_ms: 8000,  // 8秒目=選択肢が表示された状態をサムネに
       },
       source_info: {
         source: "FILE_UPLOAD",
