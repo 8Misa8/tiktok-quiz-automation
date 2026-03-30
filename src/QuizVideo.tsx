@@ -654,8 +654,7 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
       )}
 
       {/* ===== 音声 ===== */}
-      {/* BGM: 動画全体を通して流れる */}
-      <Audio src={staticFile("bgm.mp3")} volume={0.25} startFrom={0} />
+      {/* BGM: TikTokで音楽を追加するため削除 */}
 
       {/* イントロジングル */}
       <Sequence from={TIMELINE.hook.start} durationInFrames={40}>
