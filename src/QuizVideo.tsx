@@ -30,18 +30,18 @@ type QuizVideoProps = z.infer<typeof QuizVideoSchema>;
 // ===== タイムライン（64秒 / 1920フレーム @ 30fps） =====
 // Creator Rewards Program対応: 1分以上の動画が収益化対象
 const TIMELINE = {
-  hook:        { start: 0,    duration: 90  },  // 0〜3秒:    フック「99%の人が間違える！」
+  hook:        { start: 0,    duration: 90  },  // 0〜3秒:    フック
   question:    { start: 90,   duration: 120 },  // 3〜7秒:    問題文フェードイン
   choices:     { start: 210,  duration: 120 },  // 7〜11秒:   選択肢登場
   engage:      { start: 330,  duration: 90  },  // 11〜14秒:  「コメントで予想して！」
-  countdown:   { start: 420,  duration: 300 },  // 14〜24秒:  10秒カウントダウン
-  reveal:      { start: 720,  duration: 120 },  // 24〜28秒:  答え発表
-  explanation: { start: 840,  duration: 330 },  // 28〜39秒:  解説（豆知識）
-  bonusFact:   { start: 1170, duration: 390 },  // 39〜52秒:  ボーナス豆知識
+  countdown:   { start: 420,  duration: 150 },  // 14〜19秒:  5秒カウントダウン
+  reveal:      { start: 570,  duration: 120 },  // 19〜23秒:  答え発表
+  explanation: { start: 690,  duration: 330 },  // 23〜34秒:  解説（豆知識）
+  bonusFact:   { start: 1020, duration: 540 },  // 34〜52秒:  ボーナス豆知識（拡張）
   cta:         { start: 1560, duration: 360 },  // 52〜64秒:  フォローCTA＋保存促進
 };
 
-const COUNTDOWN_SECONDS = 10;
+const COUNTDOWN_SECONDS = 5;
 
 // ===== カウントダウンリング =====
 const CountdownRing: React.FC<{ progress: number; accentColor: string }> = ({
@@ -348,9 +348,8 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
           <div style={{
             marginTop: 50,
             fontSize: 36, color: "rgba(255,255,255,0.7)",
-            animation: "pulse 1s infinite",
           }}>
-            ▼ スクロールしないで！
+            💬 答えがわかったらコメントして！
           </div>
         </div>
       )}
@@ -448,10 +447,10 @@ export const QuizVideo: React.FC<QuizVideoProps> = ({
             textAlign: "center",
           }}>
             <div style={{ fontSize: 32, color: "#fff", fontWeight: "bold" }}>
-              💬 答えをコメントで予想して！
+              💬 A〜Dどれを選んだ？今すぐコメント👇
             </div>
             <div style={{ fontSize: 24, color: "rgba(255,255,255,0.6)", marginTop: 8 }}>
-              全問正解できたらフォローして！
+              正解できたか、答え合わせしよう！
             </div>
           </div>
         </div>
