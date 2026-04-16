@@ -1,12 +1,11 @@
 name: 📱 TikTok Daily Quiz Video
 
 on:
-  # 毎日 日本時間 20:00 (UTC 11:00) に自動実行
-  # バズりやすい投稿時間帯: 20時（就寝前スクロール時間）
-  schedule:
-    - cron: "0 11 * * *"
+  # スケジュール実行を無効化（手動実行のみ）
+  # schedule:
+  #   - cron: "0 11 * * *"
 
-  # 手動実行も可能
+  # 手動実行のみ
   workflow_dispatch:
     inputs:
       dry_run:
